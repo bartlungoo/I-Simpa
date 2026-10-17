@@ -39,7 +39,7 @@ l_decimal to_deciBel(const l_decimal& wjVal,const l_decimal&  Rho)
 	   c -= 2 * (sc.x * p1.x + sc.y * p1.y + sc.z * p1.z);
 	   c -= r * r;
 	   bb4ac = b * b - 4 * a * c;
-	   if (abs(a) < EPSILON || bb4ac < 0) {
+	   if (std::fabs(a) < EPSILON || bb4ac < 0) {
 		  *mu1 = 0;
 		  *mu2 = 0;
 		  return false;
