@@ -510,6 +510,13 @@ void CalculationCore::FreeParticleTranslation(CONF_PARTICULE &configurationP,con
 	if(configurationP.currentTetra->linkedRecepteurP)
 		reportTool->ParticuleFreeTranslation(configurationP,configurationP.position+translationVector);
 
+	// Move closer to the next virtual obstruction element (fitting). The unoptimised version below does
+	// this too; without it the drawn free path never shrinks inside a fitting zone, so collisions with
+	// fitting elements happen at the wrong rate. A translation never crosses a scene face (those are
+	// resolved by the caller), so the whole translation lies inside the same fitting zone or outside all.
+	if(configurationP.currentTetra->volumeEncombrement)
+		configurationP.distanceToNextEncombrementEle-=translationVector.length();
+
 	//////////////
 	// Translation de la particule
 	configurationP.position+=translationVector;
