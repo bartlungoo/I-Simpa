@@ -105,6 +105,15 @@ jobs:
       - name: Install GnuWin32 gettext tools
         run: |
           choco install poedit -y
+      - name: Locate gettext tools
+        shell: pwsh
+        run: |
+          # Poedit's install folder changed over versions (Program Files vs Program Files (x86)); find msgfmt instead of hardcoding it
+          $m = Get-ChildItem -Path "C:\Program Files\Poedit","C:\Program Files (x86)\Poedit" -Recurse -Filter msgfmt.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $m) { Write-Error "msgfmt.exe not found after installing Poedit"; exit 1 }
+          $dir = $m.DirectoryName -replace '\\','/'
+          Write-Host "Using gettext tools from $dir"
+          "GETTEXT_BIN=$dir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Configuring CMake
         run: >
           cmake -B"${{ env.builddir }}" .
@@ -113,8 +122,8 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_C_COMPILER_LAUNCHER=${{ env.ccachebindir }}/ccache.exe
           -DCMAKE_CXX_COMPILER_LAUNCHER=${{ env.ccachebindir }}/ccache.exe
-          -DGETTEXT_MSGFMT_EXECUTABLE="C:/Program Files (x86)/Poedit/GettextTools/bin/msgfmt.exe"
-          -DGETTEXT_MSGMERGE_EXECUTABLE="C:/Program Files (x86)/Poedit/GettextTools/bin/msgmerge.exe"
+          -DGETTEXT_MSGFMT_EXECUTABLE="${{ env.GETTEXT_BIN }}/msgfmt.exe"
+          -DGETTEXT_MSGMERGE_EXECUTABLE="${{ env.GETTEXT_BIN }}/msgmerge.exe"
       - name: Compiling sources
         run: |
           cmake --build "${{ env.builddir }}" --config Release --parallel
